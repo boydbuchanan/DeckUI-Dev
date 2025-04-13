@@ -1,10 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "baseUrl": "./src",
+    "target": "es6",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -12,16 +18,40 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    // "jsxImportSource": "@emotion/react",
     "incremental": true,
+    "paths": {
+      "@deckai/client": ["./client"],
+      "@deckai/client/*": ["./client/*"],
+      "@me": ["./mock/api/me"],
+      "@api/*": ["./mock/api/*"],
+      "@site": ["./site"],
+      "@assets/*": ["../public/assets/*"],
+      "@image": ["./client/image"],
+      
+      "@deckai/deck-ui": ["../node_modules/@deckai/deck-ui/dist"],
+      "@deckai/deck-ui/*": ["../node_modules/@deckai/deck-ui/dist/*"],
+      // "@deckai/deck-ui": [ "packages/deck-ui" ],
+      // "@deckai/deck-ui/*": [ "packages/deck-ui/*" ],
+      // "@deckai/icons": [ "packages/icons" ],
+      // "@deckai/icons/*": [ "packages/icons/*" ]
+
+      "@mock/*": ["./mock/*"]
+    },
+    "allowImportingTsExtensions": true,
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

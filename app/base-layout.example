@@ -1,0 +1,26 @@
+// import {Metadata} from 'next'
+// import "styles/globals.css";
+// import config from 'config/config'
+
+// /**
+//  * Default metadata.
+//  *
+//  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata
+//  */
+// export const metadata: Metadata = {
+//     title: config.siteName,
+//     description: config.siteDescription
+// }
+
+// /**
+//  * The homepage root layout.
+//  *
+//  * @see https://nextjs.org/docs/app/api-reference/file-conventions/layout
+//  */
+// export default function RootLayout({ children, }: { children: React.ReactNode }) {
+//     return (
+//         <html lang="en">
+//             <body>{children}</body>
+//         </html>
+//     )
+// }
