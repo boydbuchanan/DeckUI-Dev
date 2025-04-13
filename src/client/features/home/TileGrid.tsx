@@ -29,7 +29,10 @@ export type TileGridProps = {
 
 export const TileGrid = ({ tiles, getKey }: TileGridProps) => {
   return (
-    <div key='tilegrid' className="flex flex-wrap md:gap-6 gap-2 justify-center">
+    <div key='tilegrid' className="container m-auto grid grid-cols-5 gap-2 justify-center"
+    // <div key='tilegrid' className="flex flex-wrap md:gap-6 gap-2 justify-center"
+    style={{"gridTemplateColumns": 'repeat(5, minmax(0, 1fr))'}}>
+      
       {tiles.map((tile) => (
         <Tile
           key={getKey ? getKey(tile) : tile.title}
