@@ -9,7 +9,7 @@ import Me from "@me";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CreatorCallout } from "@deckai/client/features/profile/CreatorCallout";
-import type { EditProfileTabs } from "@deckai/client/features/profile/ProfileEditor";
+import { SidebarTab } from "@deckai/client/features/profile/ProfileEditor";
 import { ProfileEditor } from "@deckai/client/features/profile/ProfileEditor";
 import { WorkSection } from "@deckai/client/features/profile/WorkSection";
 import { NewLayout } from "@deckai/client/layout/NewLayout";
@@ -47,7 +47,7 @@ export function MyProfile({
   
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [currentTab, setCurrentTab] = useState<EditProfileTabs>("about");
+  const [currentTab, setCurrentTab] = useState<SidebarTab>(SidebarTab.About);
   const [userInterestIds, setUserInterestIds] = useState<number[]>(
     theUser?.interests?.map((i) => i.id) ?? []
   );
@@ -98,7 +98,7 @@ export function MyProfile({
   }, [theUser]);
 
   const openEditor = useCallback(
-    async (EditProfileTabs: EditProfileTabs = "about") => {
+    async (EditProfileTabs: SidebarTab = SidebarTab.About) => {
       setCurrentTab(EditProfileTabs);
       setIsEditingProfile(true);
     },
@@ -106,12 +106,11 @@ export function MyProfile({
   );
 
   const handleAddCardClick = useCallback(() => {
-    openEditor("work");
+    openEditor(SidebarTab.Work);
   }, [openEditor]);
 
   const handleUserChange = useCallback(
     async () => {
-      console.log("handleUserChange called");
       var cmsMe = await Me.getMe();
       const newMe = cmsMe as CMS.User;
       if (!newMe)
@@ -123,7 +122,6 @@ export function MyProfile({
     [setTheUser, setUserInterestIds]
   );
   const handleWorkChange = async () => {
-    console.log("handleWorkChange called");
     Me.works()
         .then((fetched) => setWorks(fetched))
         .catch((error) => console.error("Failed to fetch works:", error));

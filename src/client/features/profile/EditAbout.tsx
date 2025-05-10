@@ -14,7 +14,7 @@ import {
   Button,
   TextArea,
 } from "@deckai/deck-ui";
-import { EditProfileTabs } from "./ProfileEditor";
+import { SidebarTab } from "./ProfileEditor";
 import Me from "@me";
 
 type EditHeaderProps = {
@@ -22,7 +22,7 @@ type EditHeaderProps = {
   userInterests: CMS.Interest[];
   user: CMS.User;
   avatarUrl?: string;
-  setCurrentTab: (tab: EditProfileTabs) => void;
+  setCurrentTab: (tab: SidebarTab) => void;
   handleAvatarUpload: (blob: Blob, src: string | undefined) => Promise<void>;
   handleSave: (data: Partial<CMS.UpdateUser>) => void;
 };
@@ -155,7 +155,7 @@ export function EditAbout({
 
   const onSaveHeader = useCallback(async () => {
     handleSave(formData);
-    setCurrentTab("contact");
+    setCurrentTab(SidebarTab.Contact);
   }, [formData, handleSave, setCurrentTab]);
 
   return (

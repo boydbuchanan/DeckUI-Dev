@@ -1,7 +1,7 @@
 import type * as CMS from "@deckai/client/types/cms";
 import type { SessionData } from "@deckai/client/types/session";
 
-import { mockOffers, mockUser, mockWork, mockWorks, thisUserSessionData } from "../cms";
+import { mockOffers, mockOrders, mockUser, mockWork, mockWorks, thisUserSessionData } from "../cms";
 import { workImage } from "../imgs";
 import { AccountOnboardResponse } from "@deckai/client/types/api";
 
@@ -101,6 +101,7 @@ class UserApiClass {
   }
   // *** Orders ***
   async orders() {
+    return mockOrders;
   }
   async getOrder(documentId: any) {
   }
@@ -153,9 +154,8 @@ class UserApiClass {
     return {} as AccountOnboardResponse;
   };
   async getMe() {
-    let userResponse: CMS.DataResponse<CMS.User>;
-    userResponse = { data: mockUser } as CMS.DataResponse<CMS.User>;
-    return userResponse;
+    
+    return mockUser;
   };
 
   async updateMe(data: any) {

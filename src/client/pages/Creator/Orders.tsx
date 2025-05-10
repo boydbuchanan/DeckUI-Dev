@@ -43,7 +43,7 @@ export default function Offers({ session, user, orders }: {
             key={order.documentId}
             
             title={order.Title}
-            username={order.stripeCustomerName}
+            username={order.stripeCustomerName ?? ""}
             
             status={order.State !== OrderState.Completed ? OfferState.Enabled : OfferState.Unavailable}
             onClick={() => {

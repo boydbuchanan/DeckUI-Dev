@@ -1,4 +1,3 @@
-import { EditProfileTabs } from "./ProfileEditor";
 import { Text } from "@deckai/deck-ui";
 import * as CMS from "@deckai/client/types/cms";
 

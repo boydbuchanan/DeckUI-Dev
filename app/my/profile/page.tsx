@@ -5,6 +5,8 @@ import * as CMS from "@deckai/client/types/cms";
 import { jsonSerializable } from "@deckai/client/utils";
 import { MyProfile } from "@deckai/client/pages/MyProfile";
 import { getAppSession } from "session";
+import { redirect } from "next/navigation";
+import { ServerConfig } from "@server/config";
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#basic-fields
 export const metadata: Metadata = {
@@ -79,14 +81,14 @@ export default async function Page() {
 
   let categories: CMS.Category[] = [];
   let works: CMS.Work[] = [];
-  let user: CMS.User | undefined = undefined;
+  let me: CMS.User | undefined = undefined;
 
   try {
     categories = await CmsApi.getCategories();
     if (session.Auth && session.Auth.user) {
       var userId = session.Auth.user.id;
       const cmsUser = await CmsApi.getUser(userId, true);
-      user = cmsUser?.data ?? undefined;
+      me = cmsUser?.data ?? undefined;
       
       const workResponse = await CmsApi.getWorks(userId);
       works = workResponse.data as CMS.Work[] || [];
@@ -96,11 +98,20 @@ export default async function Page() {
     console.error("Error fetching data", error);
   }
 
+  if (!session.Auth) {
+    return redirect(ServerConfig.links.signIn);
+  }
+
+  if(!me) {
+    return redirect(ServerConfig.links.signIn);
+  }
+  
+
   // Forward fetched data to your Client Component
   return <MyProfile
       session={jsonSerializable(session)}
       categories={jsonSerializable(categories)}
-      user={jsonSerializable(user)}
+      user={jsonSerializable(me)}
       works={jsonSerializable(works)}
       canEditProfile={true}
       reviews={mockProfileReviews}

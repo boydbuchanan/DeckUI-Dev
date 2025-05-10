@@ -96,7 +96,6 @@ export const UserLayout = ({
   }
   , [showTab, currentTab]);
 
-
   return (
     <div
       className={cn(

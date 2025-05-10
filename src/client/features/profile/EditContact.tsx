@@ -2,7 +2,7 @@ import { Button, Text, TextArea } from "@deckai/deck-ui";
 import { useState, useCallback } from "react";
 import LinkManager from "@deckai/client/components/LinkManager";
 import type { LinkType } from "@deckai/client/components/LinkManager";
-import { EditProfileTabs } from "./ProfileEditor";
+import { SidebarTab } from "./ProfileEditor";
 import { useToast } from "@deckai/deck-ui";
 import * as CMS from "@deckai/client/types/cms";
 
@@ -60,7 +60,7 @@ const transformContactLinksToUserUpdate = (
 };
 
 type EditAboutProps = {
-  setCurrentTab: (tab: EditProfileTabs) => void;
+  setCurrentTab: (tab: SidebarTab) => void;
   onSave: (updateData: Partial<CMS.UpdateUser>) => void;
   user: CMS.User;
 };
@@ -106,7 +106,7 @@ export const EditContact = ({
         message: "Profile updated successfully",
         variant: "success"
       });
-      setCurrentTab("work");
+      setCurrentTab(SidebarTab.Work);
     } catch (error) {
       console.error("Failed to update contact links:", error);
       show({
