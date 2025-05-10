@@ -4,7 +4,8 @@ import "styles/globals.css";
 import * as React from "react";
 
 import localFont from "next/font/local";
-import { ToastProvider } from "@deckai/deck-ui";
+import { Config } from "@deckai/client";
+
 
 
 export default function RootLayout(props: { children: React.ReactNode }) {
@@ -14,9 +15,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
                 <meta name="viewport" content="initial-scale=1, width=device-width" />
             </head>
             <body>                
-                <ToastProvider>
-                    {props.children}
-                </ToastProvider>
+                {props.children}
             </body>
         </html>
     );

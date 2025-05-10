@@ -4,7 +4,7 @@ import { CmsApi } from "@api/cms";
 import * as CMS from "@deckai/client/types/cms";
 import { jsonSerializable } from "@deckai/client/utils";
 import { MyProfile } from "@deckai/client/pages/MyProfile";
-import { getAppSession } from "../session";
+import { getAppSession } from "session";
 import { redirect } from "next/navigation";
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#basic-fields

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { createRef, useCallback, useRef, useState } from "react";
 import { cn, Modal, Text } from "@deckai/deck-ui";
 import { MediaScaler } from "@deckai/client/components/MediaScaler";
 import { MediaInfo } from "@deckai/client/types";
@@ -22,16 +22,13 @@ export type VideoPlayerProps = {
    */
   caption?: React.ReactNode;
   /**
-   * The aspect ratio of the video
-   */
-  aspectRatio?: number;
-  /**
    * Additional class names to be applied to the video container
    */
   className?: string;
   height?: number;
   width?: number;
   mimeType?: string;
+  autoPlay?: boolean;
 };
 
 
@@ -40,17 +37,17 @@ export function ContentViewer({
   open,
   onClose,
   caption,
-  aspectRatio = 1,
-  height,
-  width,
   //mimeType = "image/jpeg",
   mimeType = "video/mp4",
+  autoPlay = false,
   className
 }: VideoPlayerProps) {
   
   const [isHovering, setIsHovering] = useState(false);
-  const [mediaAspectRatio, setMediaAspectRatio] = useState<number | undefined>(aspectRatio);
+  const [mediaAspectRatio, setMediaAspectRatio] = useState<number | undefined>(1);
   const [aspectRatioClasses, setAspectRatioClasses] = useState<string | undefined>(undefined);
+  const videoRef = createRef<HTMLVideoElement>();
+  const imgRef = createRef<HTMLImageElement>();
   
 
   const handleMouseEnter = useCallback(() => {
@@ -86,8 +83,7 @@ export function ContentViewer({
     >
       <div
         className={cn(
-          "max-h-[90vh]",
-          "relative w-full h-full flex items-center justify-center overflow-hidden"
+          "w-full h-full flex items-center justify-center overflow-hidden bg-black"
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -95,14 +91,40 @@ export function ContentViewer({
           aspectRatio: mediaAspectRatio,
         }}
       >
-        <MediaScaler
-          src={src}
-          aspectRatio={mediaAspectRatio}
-          mimeType={mimeType}
-          height={height}
-          width={width}
-          onLoadedMedia={onLoadedMedia}
-        />
+        {mimeType?.includes("video") ? (
+          <video
+            ref={videoRef}
+            src={src}
+            controls={true}
+            autoPlay={autoPlay}
+            onLoadedMetadata={() => {
+              if (videoRef.current) {
+                const video = videoRef.current;
+                onLoadedMedia?.({
+                  width: video.videoWidth,
+                  height: video.videoHeight,
+                  aspectRatio: video.videoWidth / video.videoHeight,
+                });
+              }
+            }}
+            className={"absolute top-0 left-0 w-full h-full object-contain"}
+          />
+        ) : (
+          <img
+            src={src}
+            alt="Media"
+            className={"absolute top-0 left-0 w-full h-full object-contain"}
+            onLoad={() => {
+              onLoadedMedia?.({
+                width: imgRef.current?.naturalWidth || 0,
+                height: imgRef.current?.naturalHeight || 0,
+                aspectRatio: imgRef.current?.naturalWidth
+                  ? imgRef.current.naturalHeight / imgRef.current.naturalWidth
+                  : 1,
+              });
+            }}
+          />
+        )}
         
         {caption && (
           <div className="absolute left-4 bottom-16 flex flex-col gap-1 p-2 rounded-lg bg-overlay max-w-[80%]">

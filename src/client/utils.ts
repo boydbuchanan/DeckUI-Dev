@@ -1,4 +1,12 @@
+export function copyProperties<T>(source: any, propsArray: string[]): Pick<typeof source, keyof T> {
+  const result: Partial<Record<keyof T, any>> = {};
 
+  for (const key of propsArray as (keyof T)[]) {
+    result[key] = source[key];
+  }
+
+  return result as Pick<typeof source, keyof T>;
+}
 
 /**
  * Converts to Plain Javascript Object for serialization.
@@ -10,9 +18,69 @@ export function serializable(obj: any) {
 export function jsonSerializable(obj: any) {
   return JSON.parse(JSON.stringify(obj));
 }
+export function formatEnum(str: string, delimiter: string, replacement: string) {
+  if (!str) return str;
+  // replace all occurrences of the delimiter with the replacement string
+  str = str.replace(new RegExp(delimiter, "g"), replacement);
+
+  // remove dashes from the string
+  str = str.replace(/-/g, " ");
+  // remove multiple spaces
+  str = str.replace(/\s+/g, " ");
+  // remove leading and trailing spaces
+  str = str.trim();
+  // capitalize first letter of each word
+  str = str.replace(/\b\w/g, function (l) {
+    return l.toUpperCase();
+  });
+  return str;
+}
+
+export function capitalizeWords(str: string) {
+  // capitalize first letter of each word
+  str = str.replace(/\b\w/g, function (l) {
+    return l.toUpperCase();
+  });
+}
+export function formatReplace(str: string, ...args: any[]) {
+  if (!str) return str;
+  for (var i = 0; i < args.length; i++) {
+    str = str.replace(/%s/, args[i]);
+  }
+  return str;
+}
 
 export function capitalizeFirstLetter(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+/**
+ * Formats a PascalCase or camelCase string into a human-readable format with spaces.
+ * @param {string} str - The input string in PascalCase or camelCase.
+ * @returns {string} - The formatted string with spaces and proper capitalization.
+ */
+export function formatToReadableString(str: string): string {
+  if (!str) return "";
+
+  // Insert spaces before uppercase letters
+  const formatted = str.replace(/([a-z])([A-Z])/g, "$1 $2");
+
+  // Capitalize the first letter if the string is camelCase
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+/**
+ * Formats a number into a price string.
+ * @param {number} amount - The number to format.
+ * @param {string} currency - The currency code (e.g., "USD", "EUR").
+ * @param {string} locale - The locale for formatting (e.g., "en-US", "de-DE").
+ * @returns {string} - The formatted price string.
+ */
+export function formatPrice(amount: number, currency: string = "USD", locale: string = "en-US"): string {
+  if (isNaN(amount)) return "Invalid amount";
+
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+  }).format(amount);
 }
 
 export function stringToColor(str: string) {
@@ -158,6 +226,12 @@ export function formatViewCount(viewCount: number) {
   } else {
     return `${(viewCount / 1000000).toFixed(1)}M`;
   }
+}
+export function formatFileSizeString(sizeInBytes: string, bytes: boolean = false) {
+  if (!sizeInBytes) return "0 B";
+  const size = parseInt(sizeInBytes, 10);
+  if (isNaN(size)) return "0 B";
+  return formatFileSize(size, bytes);
 }
 export function formatFileSize(sizeInBytes: number, bytes: boolean = false) {
   if (sizeInBytes === 0) {
@@ -390,12 +464,6 @@ export function isValidJSON(json: string | null | undefined) {
   } catch (e) {
     return false;
   }
-}
-
-export function isValidCreditCard(creditCard: string | null | undefined) {
-  if (!creditCard || isNullOrEmpty(creditCard)) return false;
-  const pattern = /^\d{4}-\d{4}-\d{4}-\d{4}$/;
-  return pattern.test(creditCard);
 }
 
 type FlatMapValue = string | number | boolean | null | undefined;

@@ -1,13 +1,15 @@
 import * as CMS from "@deckai/client/types/cms";
 import { IconProps, Sidebar, Tabs, Button, useToast } from "@deckai/deck-ui";
 import type { TabsProps } from "@deckai/deck-ui";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditAbout } from "./EditAbout";
 import { EditContact } from "./EditContact";
 import { EditServices } from "./EditServices";
 import { EditWork } from "./EditWork";
 import { EditWorkSidebar } from "./EditWorkSidebar";
 import { MediaInfo } from "@deckai/client/types";
+import Api from "@api";
+import Me from "@me";
 
 type SocialLink = {
   platform: IconProps["name"];
@@ -24,152 +26,166 @@ export type EditProfileData = {
   bio: string;
 };
 
-export type EditProfileTabs = "about" | "contact" | "services" | "work";
+export enum SidebarTab { 
+  About= "about",
+  Contact = "contact",
+  Services = "services",
+  Work = "work"
+}
 
 type EditProfileProps = {
-  categories: CMS.Category[];
-  userInterests: CMS.Interest[];
   open?: boolean;
   onClose: () => void;
-  currentTab?: EditProfileTabs;
-  setCurrentTab: (tab: EditProfileTabs) => void;
+  currentTab?: SidebarTab;
+  setCurrentTab: (tab: SidebarTab) => void;
   user: CMS.User;
   avatarUrl?: string;
-  works?: CMS.Work[];
-  handleAvatarUpload: (blob: Blob, src: string | undefined) => Promise<void>;
-  handleContentUpload: (
-    work: CMS.Work,
-    contentSize: MediaInfo,
-    contentFile: File
-  ) => Promise<boolean>;
-  handleCoverUpload: (
-    work: CMS.Work,
-    contentSize: MediaInfo,
-    blob: Blob,
-    coverFile?: File
-  ) => Promise<boolean>;
-  handleSave: (data: Partial<CMS.UpdateUser>) => void;
-  handleSaveWork: (
-    documentId?: string | undefined,
-    workProperties?: CMS.UpdateWork
-  ) => Promise<CMS.Work | null>;
+  onUserUpdate?: () => void;
+  onWorkUpdate?: () => void;
 };
 
 // Create refs to store update functions
 export type TabUpdateFunction = () => Promise<void>;
 
 export const ProfileEditor = ({
-  categories,
-  userInterests,
   open = true,
   onClose,
   currentTab,
   user,
   avatarUrl,
   setCurrentTab,
-  works,
-  handleAvatarUpload,
-  handleContentUpload,
-  handleCoverUpload,
-  handleSave,
-  handleSaveWork
+  onUserUpdate,
+  onWorkUpdate
 }: EditProfileProps) => {
-  const [editWork, setEditWork] = useState<CMS.Work | undefined>(undefined);
-  const [isUploadSidebarOpen, setIsUploadSidebarOpen] = useState(false);
-  const [selectedInterest, setSelectedInterest] = useState<CMS.Interest | null>(
-    null
-  );
-  const handleSidebarClose = useCallback(() => {
-    setIsUploadSidebarOpen(false);
-    setSelectedInterest(null);
-  }, []);
+  const [theUser, setTheUser] = useState(user);
+  const [avatar, setAvatar] = useState<CMS.Upload | undefined>(user?.avatar || undefined);
 
-  const handleWorkClick = (work: CMS.Work) => {
-    setEditWork(work);
-    setSelectedInterest(work.interest || null);
-    setIsUploadSidebarOpen(true);
-  };
-  // const handleAddWorkClick = useCallback((interest?: CMS.Interest) => {
-  const handleAddWorkClick = (interest?: CMS.Interest) => {
-    console.log("Add work clicked for interest", interest);
-    setEditWork(undefined);
-    setSelectedInterest(interest || null);
-    setIsUploadSidebarOpen(true);
-  };
+  const [fetchCategories, setFetchCategories] = useState<CMS.Category[]>([]);
+
+  useEffect(() => {
+    if(!open) return;
+
+    if (!fetchCategories || fetchCategories.length === 0) {
+      
+      Api.categories()
+        .then((fetched) => setFetchCategories(fetched))
+        .catch((error) => console.error("Failed to fetch categories:", error));
+    }
+  }, [fetchCategories, open]);
+
+  const userInterestIds = useMemo(() => {
+      return user?.interests?.map((i) => i.id) ?? [];
+    }, [user, user?.interests, open]);
+
+
+  const userInterests: CMS.Interest[] | undefined = useMemo(
+    () =>
+      fetchCategories
+        ?.flatMap((c) => c.interests)
+        ?.filter((i) => userInterestIds.includes(i.id)),
+    [fetchCategories, userInterestIds]
+  );
+  
+  const handleAvatarUpload = useCallback(
+    async (blob: Blob, src: string | undefined) => {
+      try {
+        const uploadResponse = await Me.uploadUserAvatar(
+          blob,
+          theUser!,
+          avatar
+        );
+
+        if (uploadResponse.status === 200) {
+          const upload = uploadResponse.data as CMS.Upload;
+          setAvatar(upload);
+          onUserUpdate?.();
+        }
+      } catch (error) {
+        console.error("Failed to update avatar", error);
+      }
+    },
+    [theUser?.id, avatar]
+  );
+  const handleProfileSave = useCallback(
+    async (updateData: Partial<CMS.UpdateUser>) => {
+      try {
+
+        var meResponse = await Me.updateMe(updateData);
+        var newMe = meResponse.data as CMS.User;
+        if (meResponse.status !== 200) {
+          console.error("Failed to update profile", meResponse);
+          return;
+        }
+        onUserUpdate?.();
+        setTheUser(newMe);
+      } catch (error) {
+        console.error("Failed to save changes:", error);
+      }
+    },
+    [theUser]
+  );
+    
 
   const tabs: TabsProps["items"] = useMemo(
     () => [
       {
         label: "About",
-        value: "about",
+        value: SidebarTab.About,
         content: (
           <EditAbout
-            categories={categories}
+            categories={fetchCategories}
             userInterests={userInterests}
             user={user}
             avatarUrl={avatarUrl}
             setCurrentTab={setCurrentTab}
             handleAvatarUpload={handleAvatarUpload}
-            handleSave={handleSave}
+            handleSave={handleProfileSave}
           />
         )
       },
       {
         label: "Contact",
-        value: "contact",
+        value: SidebarTab.Contact,
         content: (
           <EditContact
             setCurrentTab={setCurrentTab}
-            onSave={handleSave}
+            onSave={handleProfileSave}
             user={user}
           />
         )
       },
       {
         label: "Work",
-        value: "work",
+        value: SidebarTab.Work,
         content: (
           <EditWork
             userInterests={userInterests}
-            handleWorkClick={handleWorkClick}
-            handleAddWorkClick={handleAddWorkClick}
-            userWorks={works}
+            categories={fetchCategories}
+            onWorkUpdate={onWorkUpdate}
           />
         )
       },
       {
         label: "Services",
-        value: "services",
+        value: SidebarTab.Services,
         content: <EditServices />
       }
     ],
-    [userInterests, categories, user, handleSave]
+    [userInterests, fetchCategories, user]
   );
 
   return (
-    <Sidebar open={open} onClose={onClose} title="Edit Profile">
-      <div className="h-full overflow-y-auto">
+    <Sidebar open={open} onClose={onClose} title="Edit Profile" className="pb-10">
+      <div className="h-full overflow-y-auto pb-10">
         <Tabs
           key={currentTab}
           variant="segmented"
           items={tabs}
-          defaultValue={currentTab || "header"}
-          onChange={(value) => setCurrentTab(value as EditProfileTabs)}
+          defaultValue={currentTab || SidebarTab.About}
+          onChange={(value) => setCurrentTab(value as SidebarTab)}
         />
       </div>
-      {/* Upload Work Sidebar */}
-      {isUploadSidebarOpen && (
-        <EditWorkSidebar
-          open={isUploadSidebarOpen}
-          onClose={handleSidebarClose}
-          options={categories}
-          work={editWork}
-          newInterest={selectedInterest}
-          handleSaveWork={handleSaveWork}
-          handleContentUpload={handleContentUpload}
-          handleCoverUpload={handleCoverUpload}
-        />
-      )}
+      
     </Sidebar>
   );
 };

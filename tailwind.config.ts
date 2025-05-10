@@ -7,7 +7,6 @@ import { tailwindConfig } from "@deckai/deck-ui";
 export default {
   content: [
     "./src/**/*.{ts,tsx}",
-    './containers/**/*.{js,ts,jsx,tsx,mdx}',
     "./node_modules/@deckai/deck-ui/dist/**/*.{js,mjs}",
   ],
   presets: [tailwindConfig],

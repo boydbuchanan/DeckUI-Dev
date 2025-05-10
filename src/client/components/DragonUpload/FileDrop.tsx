@@ -44,6 +44,7 @@ export const DragonFileDrop: React.FC<DragonFileDropProps> = ({
   });
 
   const handleFileChange = (event: any) => {
+    
     //const selectedFiles = event.target.files as FileList;
     const selectedFiles = validateFiles(event.target.files as FileList);
     if (selectedFiles && selectedFiles.length > 0) {
@@ -54,14 +55,15 @@ export const DragonFileDrop: React.FC<DragonFileDropProps> = ({
         setFiles([selectedFiles[0]]);
       }
     }
-    onFilesSelected?.(files);
+    console.log("handleFileChange: ", selectedFiles);
+    onFilesSelected?.(selectedFiles);
   };
   const handleDrop = (event: any) => {
     event.preventDefault();
     //const droppedFiles = event.dataTransfer.files as FileList;
-    console.log("handleDrop: ", event.dataTransfer.files);
+    //console.log("handleDrop: ", event.dataTransfer.files);
     const droppedFiles = validateFiles(event.dataTransfer.files as FileList);
-    console.log(droppedFiles);
+    
     if (droppedFiles.length > 0) {
       if (multiple) {
         const newFiles = Array.from(droppedFiles);

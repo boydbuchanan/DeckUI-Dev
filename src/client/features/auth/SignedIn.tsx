@@ -44,7 +44,6 @@ export const SignedIn = ({
     [isSubmitting, show]
   );
   return (
-    <CalloutLayout>
     <div className="w-full min-h-full max-w-screen my-auto mx-auto p-8 bg-background-0 rounded-xl">
       <div className="flex flex-col items-center gap-8 px-10 pt-12 max-w-md mx-auto">
         <Text variant="heading-md">You&apos;re Signed In</Text>
@@ -75,6 +74,5 @@ export const SignedIn = ({
         </Button>
       </div>
     </div>
-    </CalloutLayout>
   );
 };

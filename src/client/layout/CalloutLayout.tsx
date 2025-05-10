@@ -13,7 +13,15 @@ import { Image } from "@image";
 
 const designerImage = Assets.images.designer;
 
-export const CalloutLayout = ({ children }: {children: React.ReactNode}) => {
+export const CalloutLayout = ({ 
+  title = "Deck",
+  description,
+  children 
+}: {
+  title?: string;
+  description?: string;
+  children: React.ReactNode
+}) => {
   const isMobile = useMediaQuery("(max-width: 1024px)");
 
   return (
@@ -24,11 +32,13 @@ export const CalloutLayout = ({ children }: {children: React.ReactNode}) => {
             variant="heading-xl"
             className="text-center bg-gradient-to-r from-[#0F5B73] to-[#089CCB] text-transparent bg-clip-text"
           >
-            All in one place
+            {title}
           </Text>
-          <Text variant="body-md" className="text-center">
-            Your portfolio, your pitch, your price
-          </Text>
+          {description && (
+            <Text variant="body-md" className="text-center">
+              {description}
+            </Text>
+          )}
           <Image
             src={designerImage}
             alt="Deck Creator"

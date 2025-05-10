@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import { CmsApi } from "@api/cms";
+import { CmsApi } from '@api/cms';
 import { clearServerSession, getServerSession } from "session";
 import { IronSession } from "iron-session";
 import { defaultSession, SessionData } from "@deckai/client/types/session";

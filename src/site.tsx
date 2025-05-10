@@ -12,7 +12,7 @@ export { useSession };
 
 // // -- DeckUI Repository
 
-// import { defaultSession, SessionData } from "./client/types/session";
+// import { defaultSession, SessionData } from "@deckai/client/types/session";
 
 
 // mock useSession
@@ -50,7 +50,9 @@ export { useSession };
 
 // // -- End DeckUI Repository
 
-import { Assets } from "./client/assets";
+import { Assets } from "@deckai/client/assets";
+import { ServerConfig } from "@server/config";
+import { Offer, Order, User } from "@deckai/client/types/cms";
 
 export { Assets };
 
@@ -63,59 +65,71 @@ export const ApiConfig = {
   }
 };
 
-export const links = {
-  home: "/",
-  signIn: "/signin",
-  myProfile: "/me",
-  explore: "/explore",
-  userProfile: (path: string) => `/c/${path}`
-};
+
 export interface SiteRouter {
   goToHome: () => void;
+  me: () => void;
   goToMyProfile: () => void;
   goToSignIn: () => void;
   goTo: (path: string) => void;
+  
   userProfile: (path: string) => void;
+  userProfilePath: (user: User) => void;
+  offer: (offer: Offer) => void;
+  order: (offer: Order) => void;
+  myOffers: () => void;
+  myOrders: () => void;
+  creator: () => void;
+  creatorOffers: (creator: User) => void;
   explore: (category?: string, interests?: string[], page?: number) => void;
   pathname: string | null;
 }
 
 export const useSiteRouter = (): SiteRouter => {
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-    
-    const push = (path: string) => {
-        console.log(`Pushing to ${path}`);
-        router.push(path);
-    }
-    const replace = (path: string) => {
-        console.log(`Replacing to ${path}`);
-        router.replace(path);
-    }
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  const push = (path: string) => {
+    console.log(`Pushing to ${path}`);
+    router.push(path);
+  }
+  const replace = (path: string) => {
+    console.log(`Replacing to ${path}`);
+    router.replace(path);
+  }
+  const links = ServerConfig.links;
 
-    return {
-        goToHome: () => push(links.home),
-        goToMyProfile: () => push(links.myProfile),
-        goToSignIn: () => push(links.signIn),
-        goTo: (path: string) => push(path),
-        explore: (category?: string, interests?: string[], page?: number) => {
-            const query = new URLSearchParams(searchParams ?? "");
-            if(page)
-                query.set("page", page.toString());
+  return {
+    goToHome: () => push(links.home),
+    me: () => push(links.me),
+    goToMyProfile: () => push(links.myProfile),
+    goToSignIn: () => push(links.signIn),
+    goTo: (path: string) => push(path),
+    explore: (category?: string, interests?: string[], page?: number) => {
+      const query = new URLSearchParams(searchParams ?? "");
+      if(page)
+        query.set("page", page.toString());
 
-            query.delete("i");
-            if(interests && interests.length > 0){
-                interests.forEach((interest) => query.append("i", interest));
-            }
-            if(category)
-                push(`${links.explore}/${category}?${query.toString()}`);
-            else
-                push(`${links.explore}?${query.toString()}`);
-            
-        },
-        userProfile: (path: string) => push(links.userProfile(path)),
+      query.delete("i");
+      if(interests && interests.length > 0){
+        interests.forEach((interest) => query.append("i", interest));
+      }
+      if(category)
+        push(`${links.explore}/${category}?${query.toString()}`);
+      else
+        push(`${links.explore}?${query.toString()}`);
         
-        pathname: pathname,
-    };
+    },
+    userProfile: (path: string) => push(links.userProfile(path)),
+    userProfilePath: (user: User) => push(links.userProfilePath(user)),
+    creator: () => push(links.creator),
+    creatorOffers: (creator: User) => push(links.creatorOffers(creator)),
+    offer: (offer: Offer) => push(links.creatorOffer(offer)),
+    order: (order: Order) => push(links.myOrder(order)),
+    myOffers: () => push(links.offers),
+    myOrders: () => push(links.orders),
+    
+    pathname: pathname,
+  };
 };

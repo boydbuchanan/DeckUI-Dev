@@ -24,8 +24,11 @@
       "@deckai/client": ["./client"],
       "@deckai/client/*": ["./client/*"],
       "@me": ["./mock/api/me"],
+      "@api": ["./mock/api"],
       "@api/*": ["./mock/api/*"],
       "@site": ["./site"],
+      "@server": ["./server"],
+      "@server/*": ["./server/*"],
       "@assets/*": ["../public/assets/*"],
       "@image": ["./client/image"],
       

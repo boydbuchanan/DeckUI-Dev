@@ -1,7 +1,7 @@
 
 import { Metadata } from "next";
 
-import { getAppSession } from "./session";
+import { getAppSession } from "session";
 import Home from "@deckai/client/pages/Home";
 import { CreatorCardProps } from "@deckai/deck-ui";
 import { TileProps } from "@deckai/client/features/home/TileGrid";
@@ -11,7 +11,7 @@ import { Category, User } from "@deckai/client/types/cms";
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#basic-fields
 export const metadata: Metadata = {
-  title: 'Login',
+  title: 'Deck',
 }
 
 export default async function Page() {

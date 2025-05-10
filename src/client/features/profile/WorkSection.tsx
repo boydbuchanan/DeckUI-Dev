@@ -195,7 +195,6 @@ export const WorkSection = ({
           src={content.url}
           caption={caption}
           mimeType={content.mime}
-          aspectRatio={content.width / content.height}
           height={content.height}
           width={content.width}
         />

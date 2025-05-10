@@ -1,3 +1,5 @@
+import { copyProperties } from "@deckai/client/utils";
+
 export type AuthCallback = {
   status: number;
   jwt: string | null;
@@ -10,6 +12,132 @@ export interface HasUserProps {
 export interface HasUserProp<TUser> {
   user: TUser | null;
 }
+
+export class Offer {
+  id: number = 0;
+  documentId: string = "";
+  createdAt: string = "";
+  updatedAt: string = "";
+  publishedAt: string = "";
+
+  Title: string = "";
+  Details: string = "";
+  Delivery: string = "";
+  Amount: number = 0;
+  Type: OfferType = OfferType.Template;
+  State: OfferState = OfferState.Unavailable;
+  ForEmail: string = "";
+  Expires: string = "";
+  creator: User | null = null;
+  buyer: User | null = null;
+}
+
+export class Order {
+  id: number = 0;
+  documentId: string = "";
+  createdAt: string = "";
+  updatedAt: string = "";
+  publishedAt: string = "";
+
+  Title: string = "";
+  Details: string = "";
+  Delivery: string = "";
+  Amount: number = 0;
+
+  State: OrderState = OrderState.Pending;
+  Content: Upload[] | null = null;
+
+  workStartedAt?: string = "";
+  inReviewAt?: string = "";
+  acceptedAt?: string = "";
+  completedAt?: string = "";
+  firstStartedAt?: string = "";
+  firstSubmittedAt?: string = "";
+  rejectedAt?: string = "";
+  refundRequestAt?: string = "";
+  totalWorkTime: number = 0;
+  
+  creator: User | null = null;
+  buyer?: User | null = null;
+
+  stripeSessionId?: string = ""; // Stripe session ID
+  stripeCustomerId?: string = ""; // Stripe customer ID
+  stripeCustomerEmail?: string = ""; // Stripe customer email
+  stripeCustomerName?: string = ""; // Stripe customer name
+  stripeCreatedAt: string = ""; // Stripe customer name
+}
+export class UpdateOrder {
+  Title?: string;
+  Details?: string;
+  Delivery?: string;
+  Amount?: number;
+  
+  State?: OrderState = OrderState.Pending;
+
+  totalWorkTime?: number;
+
+  workStartedAt?: string;
+  inReviewAt?: string;
+  acceptedAt?: string;
+  completedAt?: string;
+  firstStartedAt?: string;
+  firstSubmittedAt?: string;
+  rejectedAt?: string;
+  refundRequestAt?: string;
+  
+  creator?: number;
+  buyer?: number;
+
+  stripeSessionId?: string; // Stripe session ID
+  stripeCustomerId?: string; // Stripe customer ID
+  stripeCustomerEmail?: string; // Stripe customer email
+  stripeCustomerName?: string; // Stripe customer name
+  stripeCreatedAt?: string; // Stripe customer name
+}
+
+export class OfferDetails {
+  Title: string = ""
+  Details: string = ""
+  Delivery: string = ""
+  Amount: number = 0
+}
+const offerProps: string[] = Object.keys(new OfferDetails());
+
+export function createOrderFromOffer(offer?: Offer): UpdateOrder {
+  const template = copyProperties<UpdateOrder>(offer, offerProps);
+  return Object.assign(new UpdateOrder(), template);
+}
+
+export function createOfferFromOrder(order: Order): Offer {
+  const template = copyProperties<Offer>(order, offerProps);
+  return Object.assign(new Offer(), template);
+}
+
+
+export enum OfferType {
+  Template = 'template',
+  Public = 'public',
+  Private = 'private',
+}
+
+export enum OfferState {
+  Unavailable = 'unavailable',
+  Disabled = 'disabled',
+  Enabled = 'enabled',
+}
+
+export enum OrderState {
+  Pending = "pending",
+  InProgress = "in-progress",
+  RefundRequest = "refund-request",
+  Submitted = "submitted",
+  Rejected = "rejected",
+  Accepted = "accepted",
+  Completed = "completed"
+}
+
+
+
 export class Work {
   id: number = 0;
   documentId: string = "";
@@ -27,9 +155,17 @@ export class Work {
 }
 
 export const WorkFields = {
+  ContentReferenceName: "WorkContent",
+  CoverReferenceName: "WorkCover",
   Reference: "api::work.work",
   ContentField: "Content",
   CoverField: "DisplayImage"
+};
+
+export const OrderFields = {
+  ReferenceName: "Order",
+  Reference: "api::order.order",
+  ContentField: "Content",
 };
 
 export const UserFields = {
@@ -39,6 +175,7 @@ export const UserFields = {
 
 export class Upload {
   id: number = 0;
+  documentId: string = "";
   updatedAt: string = "";
   name: string = "";
   alternativeText: string = "";
@@ -58,6 +195,9 @@ export class SessionUser {
   email: string = "";
   createdAt: string = "";
   updatedAt: string = "";
+
+  IsVerifiedCreator: boolean = false; // isVerifiedCreator
+  IsCreatorAvailable: boolean = false; // isCreatorAvailable
 
   // Custom fields
   avatar: Upload | null = null;
@@ -80,12 +220,23 @@ export class User {
   createdAt: string = "";
   updatedAt: string = "";
 
+  // Accounts
+  stripeConnectedAccountId: string = "";
+  stripeAccountStatus?: StripeAccountStatus; // active, pending, restricted, incomplete, none
+  stripeDetailsSubmitted: boolean = false; // details_submitted
+  stripeChargesEnabled: boolean = false; // charges_enabled
+  stripePayoutsEnabled: boolean = false; // payouts_enabled
+
+  IsVerifiedCreator: boolean = false; // isVerifiedCreator
+  IsCreatorAvailable: boolean = false; // isCreatorAvailable
+
   // Relationships are not populated by default
   avatar: Upload | null = null;
 
   // Get works explicitly to also populate relationship (upload) fields
   // works: Work[] = []
   interests: Interest[] = [];
+  offers: Offer[] = [];
 
   Url: string = "";
   firstName: string = "";
@@ -105,6 +256,12 @@ export class User {
   }
 }
 
+export enum StripeAccountStatus {
+  Active = 'active',
+  Incomplete = 'incomplete',
+  Restricted = 'restricted',
+}
+
 // Use documentid to update work
 // documentid can not be part of body
 export class UpdateUser {
@@ -114,6 +271,28 @@ export class UpdateUser {
   interests?: number[];
   website?: string = "";
   contactEmail?: string = "";
+
+  IsVerifiedCreator?: boolean; // isVerifiedCreator
+  IsCreatorAvailable?: boolean; // isCreatorAvailable
+
+  stripeAccountStatus?: StripeAccountStatus
+  stripeDetailsSubmitted?: boolean; // details_submitted
+  stripeChargesEnabled?: boolean; // charges_enabled
+  stripePayoutsEnabled?: boolean; // payouts_enabled
+}
+
+export class UpdateOffer {
+  Title?: string = "";
+  Details?: string = "";
+  Delivery?: string = "";
+  Amount?: number = 0;
+  Type?: OfferType = OfferType.Template;
+  State?: OfferState = OfferState.Unavailable;
+  ForEmail?: string = "";
+  Expires?: string = "";
+  
+  creator?: number;
+  buyer?: number;
 }
 export class UpdateWork {
   Title?: string = "";

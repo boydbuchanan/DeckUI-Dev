@@ -13,6 +13,9 @@ interface MediaScalerProps {
   height?: number;
   width?: number;
   onLoadedMedia?: (size: MediaInfo) => void;
+  controls?: boolean;
+  autoPlay?: boolean;
+  className?: string;
 }
 const MediaScaler: React.FC<MediaScalerProps> = ({
   src,
@@ -20,9 +23,13 @@ const MediaScaler: React.FC<MediaScalerProps> = ({
   aspectRatio,
   height,
   width,
-  onLoadedMedia
+  onLoadedMedia,
+  controls = true,
+  autoPlay = false,
+  className = "",
 }) => {
   const videoRef = createRef<HTMLVideoElement>();
+  const imgRef = createRef<HTMLImageElement>();
 
   var paddingTop: number | undefined = undefined;
 
@@ -38,16 +45,34 @@ const MediaScaler: React.FC<MediaScalerProps> = ({
     return <p>Unknown source type.</p>;
   }
   if (mime.includes("image")) {
-    return <ImageScaler src={src} pt={paddingTop} scale={1} />;
+    return (
+      <>
+      ImageScaler {mime}
+      <ImageScaler 
+        ref={imgRef} 
+        src={src} 
+        divClass={className} 
+        pt={paddingTop} 
+        scale={1} 
+        onLoadedMedia={onLoadedMedia} />
+      </>
+    );
   } else if (mime.includes("video")) {
     return (
+      <>
+      VideoScaler {mime}
+      
       <VideoScaler
         vidRef={videoRef}
+        divClass={className}
         src={src}
         pt={paddingTop}
         scale={1}
         onLoadedMedia={onLoadedMedia}
+        controls={controls}
+        autoPlay={autoPlay}
       />
+      </>
     );
   }
 

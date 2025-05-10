@@ -5,7 +5,7 @@ import type {
   OptionProps
 } from "@deckai/deck-ui";
 import { Breadcrumbs, Button, Icon, Navbar, Text, cn } from "@deckai/deck-ui";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 
 import { getMenuItems } from "@deckai/client";
 import type * as CMS from "@deckai/client/types/cms";
@@ -71,7 +71,11 @@ export const NewLayout = ({
     Router.goToSignIn();
   }, [Router]);
 
-  const profileMenuItems: OptionProps[] = getMenuItems(Router);
+  const profileMenuItems: OptionProps[] = useMemo(() => {
+      
+    return getMenuItems(Router, user?.IsVerifiedCreator ?? false);
+  }, [user, Router]);
+  
   return (
     <div
       className={cn(

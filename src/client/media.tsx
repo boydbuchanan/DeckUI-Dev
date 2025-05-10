@@ -74,7 +74,8 @@ export const getImageInfo = (
       const imageSize = {
         width: img.width,
         height: img.height,
-        aspectRatio: img.height / img.width
+        aspectRatio: img.height / img.width,
+        mimeType: img.src.split(".").pop()
       };
       if (onload) onload(imageSize);
       resolve(imageSize);

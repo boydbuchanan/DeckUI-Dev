@@ -1,7 +1,7 @@
 
 import { Metadata } from "next";
 import { capitalizeFirstLetter, jsonSerializable } from "@deckai/client/utils";
-import { getAppSession } from "../../session";
+import { getAppSession } from "session";
 import Explore from "@deckai/client/pages/Explore";
 import { CreatorCardProps } from "@deckai/deck-ui";
 import { CmsApi } from "@api/cms";

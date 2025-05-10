@@ -2,7 +2,7 @@ import { Logo, Text } from "@deckai/deck-ui";
 
 export const Footer = () => (
   <footer className="md:pt-16 pt-10 pb-10 px-10">
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 md:justify-start justify-center">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[repeat(5,minmax(0,1fr))] gap-8 md:justify-start justify-center">
       <div className="flex flex-col gap-4">
         <Text variant="body-default-bold">Company</Text>
         <div className="flex flex-col gap-2">

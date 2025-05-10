@@ -9,14 +9,16 @@ import { MediaInfo } from "@deckai/client/types";
 
 interface FilePreviewProps {
   file: File;
+  onMediaInfo?: (mediaInfo: MediaInfo) => void;
   onScreenshot?: (dataUrl: string, size: MediaInfo) => void;
-  showScreenshot?: boolean;
+  onScreenshotText?: string;
 }
 
 const FilePreview: React.FC<FilePreviewProps> = ({
   file,
+  onMediaInfo,
   onScreenshot,
-  showScreenshot = false
+  onScreenshotText = "Screenshot",
 }) => {
   const [aspectRatio, setAspectRatio] = useState<number | undefined>(undefined);
   const [screenshot, setScreenshot] = useState<string | null>(null);
@@ -37,6 +39,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
           mediaInfo = { width: 0, height: 0, aspectRatio: 0 };
         }
         setAspectRatio(mediaInfo.aspectRatio);
+        onMediaInfo && onMediaInfo(mediaInfo);
       } catch (error) {
         console.error("Error calculating aspect ratio:", error);
       }
@@ -79,7 +82,8 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     <Preview
       src={fileSrc}
       isVideo={fileType === "video"}
-      onScreenshot={showScreenshot ? onScreenshot : undefined}
+      onScreenshot={onScreenshot}
+      onScreenshotText={onScreenshotText}
     />
   );
 
@@ -107,14 +111,22 @@ interface PreviewProps {
     dataUrl: string,
     size: { width: number; height: number; aspectRatio: number }
   ) => void;
+  onScreenshotText?: string;
 }
 
-const Preview: React.FC<PreviewProps> = ({ src, isVideo, onScreenshot }) => {
+const Preview: React.FC<PreviewProps> = ({ src, isVideo, onScreenshot, onScreenshotText = 'Screenshot' }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleScreenshot = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    if(!isVideo) {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        onScreenshot && onScreenshot(src, { width: img.width, height: img.height, aspectRatio: img.height / img.width });
+      };
+    }
     if (!videoRef.current || !onScreenshot) return;
 
     const video = videoRef.current;
@@ -136,8 +148,15 @@ const Preview: React.FC<PreviewProps> = ({ src, isVideo, onScreenshot }) => {
 
   if (!isVideo) {
     return (
-      <div className="relative w-full rounded-lg overflow-hidden">
-        <img src={src} alt="Preview" className="w-full h-full object-cover" />
+      <div className="flex flex-col gap-2">
+        {onScreenshot && (
+          <Button variant="outlined" onClick={handleScreenshot}>
+            {onScreenshotText}
+          </Button>
+        )}
+        <div className="relative w-full rounded-lg overflow-hidden">
+          <img src={src} alt="Preview" className="w-full h-full object-cover" />
+        </div>
       </div>
     );
   }
@@ -147,7 +166,7 @@ const Preview: React.FC<PreviewProps> = ({ src, isVideo, onScreenshot }) => {
       <div className="flex flex-col gap-2">
         {onScreenshot && (
           <Button variant="outlined" onClick={handleScreenshot}>
-            Screenshot
+            {onScreenshotText}
           </Button>
         )}
 

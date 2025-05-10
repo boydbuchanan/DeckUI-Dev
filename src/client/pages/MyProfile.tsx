@@ -6,7 +6,7 @@ import type {
 } from "@deckai/deck-ui";
 import { AboutCard, ProfileCard, SocialCard, useToast } from "@deckai/deck-ui";
 import Me from "@me";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CreatorCallout } from "@deckai/client/features/profile/CreatorCallout";
 import type { EditProfileTabs } from "@deckai/client/features/profile/ProfileEditor";
@@ -17,7 +17,7 @@ import type { MediaInfo, SocialData } from "@deckai/client/types";
 import type * as CMS from "@deckai/client/types/cms";
 import type { SessionData } from "@deckai/client/types/session";
 
-import { Assets } from "@site";
+import { Assets, useSiteRouter } from "@site";
 
 import { ReviewsSection } from "../features/profile/ReviewsSection";
 import { profileImage } from "@deckai/client/types/cms";
@@ -38,11 +38,13 @@ export function MyProfile({
   canEditProfile?: boolean;
   reviews?: ReviewCardProps[];
 }) {
-  const { show } = useToast();
+  const siteRouter = useSiteRouter();
   const [theUser, setTheUser] = useState(user);
   const [avatar, setAvatar] = useState<CMS.Upload | undefined>(
     theUser?.avatar || undefined
   );
+  const [userWorks, setWorks] = useState<CMS.Work[] | undefined>(works);
+  
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [currentTab, setCurrentTab] = useState<EditProfileTabs>("about");
@@ -95,39 +97,6 @@ export function MyProfile({
     return items.concat(externalItems);
   }, [theUser]);
 
-  const handleProfileSave = useCallback(
-    async (updateData: Partial<CMS.UpdateUser>) => {
-      try {
-        var updateints =
-          updateData.interests ?? theUser?.interests?.map((i) => i.id) ?? [];
-
-        setUserInterestIds(updateints);
-        var meResponse = await Me.updateMe(updateData);
-        var newMe = meResponse.data as CMS.User;
-        if (meResponse.status !== 200) {
-          console.error("Failed to update profile", meResponse);
-          show({
-            message: "Failed to save changes",
-            variant: "error"
-          });
-          return;
-        }
-        
-        setTheUser(newMe);
-        show({
-          message: "Changes saved successfully",
-          variant: "success"
-        });
-      } catch (error) {
-        console.error("Failed to save changes:", error);
-        show({
-          message: "Failed to save changes",
-          variant: "error"
-        });
-      }
-    },
-    [show]
-  );
   const openEditor = useCallback(
     async (EditProfileTabs: EditProfileTabs = "about") => {
       setCurrentTab(EditProfileTabs);
@@ -140,143 +109,29 @@ export function MyProfile({
     openEditor("work");
   }, [openEditor]);
 
-  const handleAvatarUpload = useCallback(
-    async (blob: Blob, src: string | undefined) => {
-      try {
-        const uploadResponse = await Me.uploadUserAvatar(
-          blob,
-          theUser!,
-          avatar
-        );
-
-        if (uploadResponse.status === 200) {
-          const upload = uploadResponse.data as CMS.Upload;
-          setAvatar(upload);
-          show({
-            message: "Avatar updated successfully",
-            variant: "success"
-          });
-        }
-      } catch (error) {
-        show({
-          message: "Failed to update avatar",
-          variant: "error"
-        });
-      }
+  const handleUserChange = useCallback(
+    async () => {
+      console.log("handleUserChange called");
+      var cmsMe = await Me.getMe();
+      const newMe = cmsMe as CMS.User;
+      if (!newMe)
+        return;
+      
+      setTheUser(newMe);
+      setUserInterestIds(newMe.interests?.map((i) => i.id) ?? []);
     },
-    [user?.id, avatar, show]
+    [setTheUser, setUserInterestIds]
   );
-
-  const handleWorkContentUpload = async (
-    work: CMS.Work,
-    contentSize: MediaInfo,
-    contentFile: File
-  ) => {
-    var contentUpload = work.Content;
-    var contentUploadId = contentUpload?.id || undefined;
-    if (contentUploadId) {
-      try {
-        console.log("Delete Previous Content", contentUploadId);
-        var deleteResponse = await Me.deleteUpload(contentUploadId);
-        if (deleteResponse.status === 200) {
-          console.log("Content Deleted", deleteResponse);
-        } else {
-          console.error("Failed to delete content", deleteResponse);
-          return false;
-        }
-      } catch (error) {
-        console.warn("Failed to delete content", error);
-        return false;
-      }
-    }
-    console.log("Uploading Content File", contentFile);
-    var ext = contentFile.name.split(".").pop();
-    // Always upload a new file to get the correct mime type and dimensions
-    var contentfileData = {
-      height: contentSize.height,
-      width: contentSize.width,
-      ext
-    };
-    try {
-      var contentUploadResponse = await Me.uploadWorkContent(
-        contentFile,
-        work,
-        contentUploadId,
-        contentfileData
-      );
-      if (contentUploadResponse.status === 200) {
-        console.log("Content Uploaded", contentUploadResponse);
-        return true;
-      }
-    } catch (error) {
-      console.error("Failed to upload content", error);
-      return false;
-    }
-    return false;
-  };
-
-  const handleWorkCoverUpload = async (
-    work: CMS.Work,
-    contentSize: MediaInfo,
-    blob: Blob,
-    coverFile?: File
-  ) => {
-    var coverUpload = work.DisplayImage;
-    var coverUploadId = coverUpload?.id || undefined;
-    var ext = (coverFile && coverFile.name.split(".").pop()) || undefined;
-    var coverfileData = {
-      height: contentSize.height,
-      width: contentSize.width,
-      ext
-    };
-    try {
-      var coverUploadResponse = await Me.uploadWorkCover(
-        blob,
-        work,
-        coverUploadId,
-        coverfileData
-      );
-      if (coverUploadResponse.status === 200) {
-        console.log("Cover Image Uploaded", coverUploadResponse);
-        return true;
-      }
-    } catch (error) {
-      console.warn("Cover Image Upload Failed", error);
-    }
-    return false;
-  };
-
-  const handleSaveWork = async (
-    documentId?: string | undefined,
-    workProperties?: CMS.UpdateWork
-  ) => {
-    try {
-      var response;
-      if (!documentId) {
-        response = await Me.newWorkWith(workProperties);
-        var work = response.data as CMS.Work;
-        documentId = work.documentId;
-      } else {
-        response = await Me.updateMyWork(documentId, workProperties);
-      }
-
-      if (response.status === 200 || response.status === 201) {
-        console.log("Work updated", response);
-        return response.data as CMS.Work;
-      } else {
-        console.error("Failed to update work", response);
-        alert("Failed to update work");
-        return null;
-      }
-    } catch (error) {
-      console.error("Failed to save work", error);
-    }
-    return null;
-  };
+  const handleWorkChange = async () => {
+    console.log("handleWorkChange called");
+    Me.works()
+        .then((fetched) => setWorks(fetched))
+        .catch((error) => console.error("Failed to fetch works:", error));
+  }
 
   return (
     <NewLayout
-      user={session.Auth?.user ?? undefined}
+      user={user}
       launchEditMode={() => setIsEditingProfile(true)}
     >
       {session.isLoggedIn && theUser && (
@@ -291,7 +146,7 @@ export function MyProfile({
               />
               <div className="flex flex-col gap-10 max-w-full">
                 {!socialCardsData.length ? (
-                  <CreatorCallout onClick={() => {}} />
+                  <CreatorCallout onClick={() => siteRouter.creator()} />
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-1 gap-4 w-full sm:w-1/2 items-end">
                     {socialCardsData.map((socialCard, index) => (
@@ -312,7 +167,7 @@ export function MyProfile({
           </div>
           <div className="flex flex-col mt-10">
             <WorkSection
-              works={works}
+              works={userWorks}
               launchEditMode={handleAddCardClick}
             />
           </div>
@@ -320,17 +175,12 @@ export function MyProfile({
             open={isEditingProfile}
             currentTab={currentTab}
             setCurrentTab={setCurrentTab}
-            categories={categories}
-            userInterests={userInterests}
             onClose={() => setIsEditingProfile(false)}
             user={theUser}
             avatarUrl={avatar?.url}
-            works={works}
-            handleAvatarUpload={handleAvatarUpload}
-            handleContentUpload={handleWorkContentUpload}
-            handleCoverUpload={handleWorkCoverUpload}
-            handleSave={handleProfileSave}
-            handleSaveWork={handleSaveWork}
+            onUserUpdate={handleUserChange}
+            onWorkUpdate={handleWorkChange}
+            
           />
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
 import { SignedIn } from "@deckai/client/features/auth/SignedIn";
 import { SignedOut } from "@deckai/client/features/auth/SignedOut";
@@ -8,8 +8,10 @@ import { SessionData } from "@deckai/client/types/session";
 import Me from "@me";
 import { useToast } from "@deckai/deck-ui";
 import { useSiteRouter, useSession } from "@site";
+import { CalloutLayout } from "@deckai/client/layout/CalloutLayout";
 
 export default function SignInOut({ session }: { session: SessionData }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const Router = useSiteRouter();
   const { login, logout } = useSession();
   const { show } = useToast();
@@ -40,6 +42,7 @@ export default function SignInOut({ session }: { session: SessionData }) {
     password: string;
     register: boolean;
   }) => {
+    setIsSubmitting(true);
     const formData = { email, password };
     if (register) {
       const registerResponse = await Me.register(
@@ -68,17 +71,31 @@ export default function SignInOut({ session }: { session: SessionData }) {
         Router.goToMyProfile();
       }
     }
+    setIsSubmitting(false);
   };
 
   if (session.isLoggedIn) {
     return (
-      <SignedIn
-        handleSignOut={handleSignOut}
-        navigationText="My Profile"
-        handleNavigation={handleNavigation}
-      />
+      <CalloutLayout
+        title="You are signed in"
+        description="Your portfolio, your pitch, your price"
+      >
+        <SignedIn
+          handleSignOut={handleSignOut}
+          navigationText="My Profile"
+          handleNavigation={handleNavigation}
+        />
+      </CalloutLayout>
     );
   }
 
-  return <SignedOut handleSubmit={handleRegister} />;
+  return (
+    <CalloutLayout
+      title="Sign In or Register"
+      description="Your portfolio, your pitch, your price"
+    >
+      <SignedOut handleSubmit={handleRegister} disableButton={isSubmitting} />
+    </CalloutLayout>
+  );
+
 }

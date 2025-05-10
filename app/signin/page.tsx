@@ -1,12 +1,12 @@
 
 import { Metadata } from "next";
 import { jsonSerializable } from "@deckai/client/utils";
-import { getAppSession } from "../session";
+import { getAppSession } from "session";
 import SignInOut from "@deckai/client/pages/SignInOut";
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#basic-fields
 export const metadata: Metadata = {
-  title: 'Login',
+  title: 'Sign In',
 }
 
 export default async function Page() {

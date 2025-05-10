@@ -1,6 +1,5 @@
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo, useEffect } from "react";
 import * as CMS from "@deckai/client/types/cms";
-import { EditProfileTabs } from "./ProfileEditor";
 import {
   Text,
   Button,
@@ -10,38 +9,41 @@ import {
   WorkCard,
   Accordion
 } from "@deckai/deck-ui";
-import { EditWorkSidebar } from "./EditWorkSidebar";
+import Me from "@me";
+import { EditWorkSidebar } from "@deckai/client/features/profile/EditWorkSidebar";
 
 type EditWorkProps = {
   userInterests: CMS.Interest[];
-  userWorks?: CMS.Work[];
-  handleWorkClick: (work: CMS.Work) => void;
-  handleAddWorkClick: (interest?: CMS.Interest) => void;
+  categories?: CMS.Category[];
+  onWorkUpdate?: () => void;
 };
 
 export function EditWork({
   userInterests,
-  userWorks,
-  handleWorkClick,
-  handleAddWorkClick
+  categories,
+  onWorkUpdate
 }: EditWorkProps) {
   const { show } = useToast();
   const showStorage = false;
-
-  // State for upload sidebar
-  const [isUploadSidebarOpen, setIsUploadSidebarOpen] = useState(false);
-  const [selectedInterest, setSelectedInterest] = useState<CMS.Interest | null>(
-    null
-  );
 
   // State for storage
   const storageUsed = 10; // TODO: Get from backend
   const storageTotal = 50; // GB
   const storagePercentage = (storageUsed / storageTotal) * 100;
-
-  const [works, setWorks] = useState<CMS.Work[] | undefined>(userWorks);
-  const [editWork, setEditWork] = useState<CMS.Work | undefined>(undefined);
-
+  const [works, setWorks] = useState<CMS.Work[] | undefined>(undefined);
+  
+  useEffect(() => {
+    if (!works || works.length === 0) {
+      refreshWorks();
+    }
+  }, [works]);
+  const refreshWorks = () => {
+    console.log("handleWorkChange called");
+    Me.works()
+        .then((fetched) => setWorks(fetched))
+        .catch((error) => console.error("Failed to fetch works:", error));
+  }
+  
   const [unCategorizedWork, setUnOrganizedWorks] = useState<
     CMS.Work[] | undefined
   >(undefined);
@@ -91,10 +93,61 @@ export function EditWork({
       )
     ];
 
-    //setAllWorkInterests(combinedList);
-
     return combinedList || [];
   }, [currentInterestIds, userInterests, works]);
+
+  const [editWork, setEditWork] = useState<CMS.Work | undefined>(undefined);
+  const [isUploadSidebarOpen, setIsUploadSidebarOpen] = useState(false);
+  const [selectedInterest, setSelectedInterest] = useState<CMS.Interest | null>(
+    null
+  );
+  const handleSidebarClose = useCallback(() => {
+    setIsUploadSidebarOpen(false);
+    setSelectedInterest(null);
+  }, []);
+
+  const handleWorkClick = (work: CMS.Work) => {
+    setEditWork(work);
+    setSelectedInterest(work.interest || null);
+    setIsUploadSidebarOpen(true);
+  };
+  // const handleAddWorkClick = useCallback((interest?: CMS.Interest) => {
+  const handleAddWorkClick = (interest?: CMS.Interest) => {
+    console.log("Add work clicked for interest", interest);
+    setEditWork(undefined);
+    setSelectedInterest(interest || null);
+    setIsUploadSidebarOpen(true);
+  };
+
+  
+  const handleSaveWork = async (
+    documentId?: string | undefined,
+    workProperties?: CMS.UpdateWork
+  ) => {
+    try {
+      var response;
+      if (!documentId) {
+        response = await Me.newWorkWith(workProperties);
+        var work = response.data as CMS.Work;
+        documentId = work.documentId;
+      } else {
+        response = await Me.updateMyWork(documentId, workProperties);
+      }
+
+      if (response.status === 200 || response.status === 201) {
+        console.log("Work updated", response);
+        onWorkUpdate?.();
+        return response.data as CMS.Work;
+      } else {
+        console.error("Failed to update work", response);
+        alert("Failed to update work");
+        return null;
+      }
+    } catch (error) {
+      console.error("Failed to save work", error);
+    }
+    return null;
+  };
 
   return (
     <>
@@ -221,31 +274,21 @@ export function EditWork({
             />
           )}
         </div>
-
-        {/* Save Button */}
-        {/* <div className="sticky bottom-0 left-0 right-0 px-4 pb-4 pt-0.5 bg-white">
-          <Button
-            color="black"
-            variant="filled"
-            onClick={handleSaveChanges}
-            className="w-full py-4"
-          >
-            Save changes
-          </Button>
-        </div> */}
       </div>
-
-      {/* Upload Work Sidebar */}
-      {/* {(isUploadSidebarOpen && (
-      <EditWorkSidebar
-        open={isUploadSidebarOpen}
-        onClose={handleSidebarClose}
-        options={categories}
-        work={editWork}
-        newInterest={selectedInterest}
-        handleSaveWork={handleSaveWork}
-      />
-      ))} */}
+      {isUploadSidebarOpen && (
+        <EditWorkSidebar
+          open={isUploadSidebarOpen}
+          onClose={handleSidebarClose}
+          options={categories}
+          work={editWork}
+          newInterest={selectedInterest}
+          handleSaveWork={handleSaveWork}
+          onWorkUpdate={() => {
+            onWorkUpdate?.();
+            refreshWorks();
+          }}
+        />
+      )}
     </>
   );
 }

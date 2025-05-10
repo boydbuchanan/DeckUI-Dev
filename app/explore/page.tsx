@@ -1,7 +1,7 @@
 
 import { Metadata } from "next";
 import { jsonSerializable } from "@deckai/client/utils";
-import { getAppSession } from "../session";
+import { getAppSession } from "session";
 import Explore from "@deckai/client/pages/Explore";
 import { redirect } from "next/navigation";
 

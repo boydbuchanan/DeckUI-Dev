@@ -1,8 +1,9 @@
 import type * as CMS from "@deckai/client/types/cms";
 import type { SessionData } from "@deckai/client/types/session";
 
-import { mockUser, mockWork, mockWorks, thisUserSessionData } from "../cms";
+import { mockOffers, mockUser, mockWork, mockWorks, thisUserSessionData } from "../cms";
 import { workImage } from "../imgs";
+import { AccountOnboardResponse } from "@deckai/client/types/api";
 
 // Use the first item from mockWork array for mock API responses
 const firstMockWork = mockWork;
@@ -21,10 +22,11 @@ class UserApiClass {
     return { status: 200 };
   }
   async uploadWorkCover(
-    blob: Blob | File,
-    work: CMS.Work,
+    blob: Blob | File, 
+    work: CMS.Work, 
     coverUploadId?: number,
-    coverfileData?: any
+    coverfileData?: any,
+    onProgress?: (progress: number) => void
   ) {
     var response: CMS.DataResponse<CMS.Upload> = {
       status: 200,
@@ -37,14 +39,30 @@ class UserApiClass {
     blob: Blob | File,
     work: CMS.Work,
     contentUploadId?: number,
-    contentfileData?: any
+    contentfileData?: any,
+    onProgress?: (progress: number) => void
   ) {
     var response: CMS.DataResponse<CMS.Upload> = {
       status: 200,
       data: firstMockWork.Content,
       error: null
-    };
+    }
     return response;
+  }
+  async uploadOrderContent(
+    blob: Blob | File,
+    order: CMS.Order,
+    contentUploadId?: number,
+    contentfileData?: any,
+    onProgress?: (progress: number) => void
+  ) {
+    var response: CMS.DataResponse<CMS.Upload> = {
+      status: 200,
+      data: firstMockWork.Content,
+      error: null
+    }
+    return response;
+
   }
   async uploadUserAvatar(
     blob: Blob | File,
@@ -58,10 +76,45 @@ class UserApiClass {
     };
     return response;
   }
-  async works() {
-    let workResponse: CMS.DataResponse<CMS.Work[]>;
-    workResponse = { data: mockWorks } as CMS.DataResponse<CMS.Work[]>;
+  // *** Offers ***
+  async offers() {
+    
+    return mockOffers;
+  }
+  async newOffer() {
+  }
+  async newOfferWith(data: any) {
+    let workResponse: CMS.DataResponse<CMS.Offer>;
+    workResponse = {  } as CMS.DataResponse<CMS.Offer>;
     return workResponse;
+  }
+  async getOffer(documentId: any) {
+    var idx = mockOffers.findIndex((o) => o.documentId === documentId);
+    return mockOffers[idx];
+  }
+  async updateOffer(documentId: any, data: any) {
+    let workResponse: CMS.DataResponse<CMS.Offer>;
+    workResponse = {  } as CMS.DataResponse<CMS.Offer>;
+    workResponse.data = data as CMS.Offer;
+    workResponse.status = 200;
+    return workResponse;
+  }
+  // *** Orders ***
+  async orders() {
+  }
+  async getOrder(documentId: any) {
+  }
+  async updateOrder(documentId: any, data: any) {
+    let workResponse: CMS.DataResponse<CMS.Order>;
+    workResponse = {  } as CMS.DataResponse<CMS.Order>;
+    workResponse.data = data as CMS.Order;
+    workResponse.status = 200;
+    return workResponse;
+  }
+  // *** Work ***
+  async works() {
+    
+    return mockWorks;
   }
 
   async newWork() {
@@ -96,11 +149,14 @@ class UserApiClass {
     return imageUrl;
   }
 
+  async onboarding() {
+    return {} as AccountOnboardResponse;
+  };
   async getMe() {
     let userResponse: CMS.DataResponse<CMS.User>;
     userResponse = { data: mockUser } as CMS.DataResponse<CMS.User>;
     return userResponse;
-  }
+  };
 
   async updateMe(data: any) {
     const res = { status: 200 };

@@ -4,6 +4,7 @@ import { MediaInfo } from "@deckai/client/types";
 import { horizontalStyle, verticalStyle } from "@deckai/client/media";
 
 const ImageScaler = ({
+  ref,
   src,
   divClass = "",
   imgClass = "",
@@ -19,6 +20,7 @@ const ImageScaler = ({
   sx = {},
   onLoadedMedia
 }: {
+  ref: any;
   src: string;
   divClass?: string;
   imgClass?: string;
@@ -31,7 +33,14 @@ const ImageScaler = ({
   const width = 100 * scale;
   const paddingTop = pt && `${pt * scale}%`;
   const onLoadedMetadata = () => {
-    
+    console.log("Image loaded metadata");
+    const img = ref.current;
+    const dimension: MediaInfo = {
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      aspectRatio: img.naturalWidth / img.naturalHeight
+    };
+    onLoadedMedia?.(dimension);
   }
   return (
     <div
@@ -46,10 +55,12 @@ const ImageScaler = ({
       }}
     >
       <img
+        ref={ref}
         src={src}
         alt="Image"
         className={imgClass}
-        onLoadedMetadata={onLoadedMetadata}
+        onLoad={onLoadedMetadata}
+        // onLoadedMetadata={onLoadedMetadata}
         style={{
           position: "absolute",
           width: "100%",
@@ -79,6 +90,7 @@ const VideoScaler = ({
   //pt = 67, // 2: 3
   scale = 1,
   controls = true,
+  autoPlay = false,
   onLoadedMedia
 }: {
   vidRef: any;
@@ -88,6 +100,7 @@ const VideoScaler = ({
   pt?: number;
   scale?: number;
   controls?: boolean;
+  autoPlay?: boolean;
   onLoadedMedia?: (size: MediaInfo) => void
 }) => {
   const [dimension, setDimension] = React.useState({
@@ -136,7 +149,7 @@ const VideoScaler = ({
     }
     onLoadedMedia?.(dimension);
 
-    if (vidRef.current) {
+    if (autoPlay && vidRef.current) {
       vidRef.current.play();
     }
   };

@@ -3,6 +3,7 @@ import { IncomingMessage, ServerResponse } from 'http';
 import { ShallowCopy } from '@deckai/client/utils';
 import { CmsApi } from '@api/cms';
 import { defaultSession, SessionData } from '@deckai/client/types/session';
+import { cookies } from "next/headers";
 
 export const sessionOptions: SessionOptions = {
   password: "FfYCY8Z4TbHKTrMpnYBNCNawkRk8PmrX7",
@@ -13,6 +14,11 @@ export const sessionOptions: SessionOptions = {
     secure: true,
   },
 };
+export async function getAppSession() {
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
+    
+    return session
+}
 
 export async function getServerSession(req: IncomingMessage | Request, res: Response | ServerResponse<IncomingMessage>) {
   const session = await getIronSession<SessionData>(req, res, sessionOptions);

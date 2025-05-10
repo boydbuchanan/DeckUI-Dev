@@ -8,8 +8,8 @@ import qs from "qs";
 //npm i --save-dev @types/qs
 
 import { defaultSession, SessionData } from "@deckai/client/types/session";
-import { Config } from "@api/config";
-import { mockCategories, mockCreators, mockUser, mockWork, newUserSessionData, thisUserSessionData } from "@mock/cms";
+import { ServerConfig } from "@server/config";
+import { mockCategories, mockCreators, mockOffers, mockOrders, mockUser, mockWork, newUserSessionData, thisUserSessionData } from "@mock/cms";
 
 const agent = process.env.NODE_ENV === 'development'
   ? new https.Agent({
@@ -19,7 +19,7 @@ const agent = process.env.NODE_ENV === 'development'
 
 export const CmsApi = {
   getMedialUrl: function(path: string) {
-    return `${Config.CMSURL}${path}`;
+    return `${ServerConfig.CMSURL}${path}`;
   },
   uploadMedia: async function(blob: Blob, name: string) {
     return null;
@@ -45,13 +45,58 @@ export const CmsApi = {
 
     return response;
   },
+  async getPublicOffers(userId: number) {
+    let response: CMS.DataArrayResponse<CMS.Offer>;
+    response = {} as CMS.DataArrayResponse<CMS.Offer>;
+    response.data = mockOffers;
+
+    return response;
+  },
+  async getOffers(userId: number) {
+    let response: CMS.DataArrayResponse<CMS.Offer>;
+    response = {} as CMS.DataArrayResponse<CMS.Offer>;
+    response.data = mockOffers;
+
+    return response;
+  },
+  async getOffer(offerDocumentId: any) {
+    let response: CMS.DataResponse<CMS.Offer>;
+    response = {} as CMS.DataResponse<CMS.Offer>;
+    var idx = mockOffers.findIndex((o) => o.documentId === offerDocumentId);
+    response.data = mockOffers[idx];
+
+    return response;
+  },
+  async newOffer(userId: number, data: any) {
+  },
+  async updateOffer(offerDocumentId: any, data: any) {
+  },
+  async getOrders(userId: number) {
+    let response: CMS.DataArrayResponse<CMS.Order>;
+    response = {} as CMS.DataArrayResponse<CMS.Order>;
+    response.data = mockOrders;
+
+    return response;
+  },
+  async getOrderBySessionId(orderSessionId?: string) {
+  },
+  async getOrder(orderDocumentId: any) {
+    let response: CMS.DataResponse<CMS.Order>;
+    response = {} as CMS.DataResponse<CMS.Order>;
+    var idx = mockOrders.findIndex((o) => o.documentId === orderDocumentId);
+    response.data = mockOrders[idx];
+
+    return response;
+  },
+  async newOrder(data: any, userId?: number, ) {
+  },
   async getWorks(userId: number) {
     let worksResponse: CMS.DataArrayResponse<CMS.Work>;
     worksResponse = {} as CMS.DataArrayResponse<CMS.Work>;
 
     return worksResponse;
   },
-  async getWork(workId: any) {
+  async getWork(workDocumentId: any) {
     let workResponse: CMS.DataResponse<CMS.Work>;
     workResponse = {} as CMS.DataResponse<CMS.Work>;
     return workResponse;
@@ -105,6 +150,8 @@ export const CmsApi = {
   async refreshUser(session: IronSession<SessionData>) {
     
   },
+  async getUserByStripeCustomerId(customerId: string) {
+  },
   async getUserByUrl(path: string) {
     var users = mockCreators.filter((u) => u.Url === path || u.id.toString() === path);
     let userResponse: CMS.DataArrayResponse<CMS.User>;
@@ -118,6 +165,8 @@ export const CmsApi = {
     return userResponse;
   },
   
+  async getUserAs<T>(user: any, id?: number) {
+  },
   async updateWork(id: any, work: any) {
     let cmsResponse: CMS.DataResponse<CMS.Work>;
     cmsResponse = {data: mockWork} as CMS.DataResponse<CMS.Work>;
@@ -136,14 +185,14 @@ export const CmsApi = {
 
   cmsGet(path: string) {
     try{
-      var endpoint = addPath(Config.CMSAPIURL, path);
+      var endpoint = addPath(ServerConfig.CMSAPIURL, path);
       var requestOptions = {
         httpsAgent: agent,
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           Accept: '*/*',
-          Authorization: `Bearer ${Config.APITOKEN}`
+          Authorization: `Bearer ${ServerConfig.APITOKEN}`
         },
         validateStatus: (status: number) => true
       };
@@ -157,14 +206,14 @@ export const CmsApi = {
   
   cmsDelete(path: string) {
     try{
-      var endpoint = addPath(Config.CMSAPIURL, path);
+      var endpoint = addPath(ServerConfig.CMSAPIURL, path);
       var requestOptions = {
         httpsAgent: agent,
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           Accept: '*/*',
-          Authorization: `Bearer ${Config.APITOKEN}`
+          Authorization: `Bearer ${ServerConfig.APITOKEN}`
         },
         validateStatus: (status: number) => true
       };
@@ -177,14 +226,14 @@ export const CmsApi = {
   // User does not use the data field when updating, so it has it's own very special method
   userPut(path: string, data: any) {
     try{
-      var endpoint = addPath(Config.CMSAPIURL, path);
+      var endpoint = addPath(ServerConfig.CMSAPIURL, path);
       var requestOptions = {
         agent: agent,
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Accept: '*/*',
-          Authorization: `Bearer ${Config.APITOKEN}`
+          Authorization: `Bearer ${ServerConfig.APITOKEN}`
         },
         body: JSON.stringify(data),
         validateStatus: (status: number) => true
@@ -197,14 +246,14 @@ export const CmsApi = {
   },
   cmsPut(path: string, data: any) {
     try{
-      var endpoint = addPath(Config.CMSAPIURL, path);
+      var endpoint = addPath(ServerConfig.CMSAPIURL, path);
       var requestOptions = {
         agent: agent,
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Accept: '*/*',
-          Authorization: `Bearer ${Config.APITOKEN}`
+          Authorization: `Bearer ${ServerConfig.APITOKEN}`
         },
         body: JSON.stringify({data: data}),
         validateStatus: (status: number) => true
@@ -224,14 +273,14 @@ export const CmsApi = {
   
   cmsJson(path: string, method: string, data: any) {
     try{
-      var endpoint = addPath(Config.CMSAPIURL, path);
+      var endpoint = addPath(ServerConfig.CMSAPIURL, path);
       var requestOptions = {
         agent: agent,
         method: method,
         headers: {
           'Content-Type': 'application/json',
           Accept: '*/*',
-          Authorization: `Bearer ${Config.APITOKEN}`
+          Authorization: `Bearer ${ServerConfig.APITOKEN}`
         },
         body: JSON.stringify({data: data}),
         validateStatus: (status: number) => true
@@ -244,13 +293,13 @@ export const CmsApi = {
   },
   cmsForm(path: string, method: string, body: FormData) {
     try{
-      var endpoint = addPath(Config.CMSAPIURL, path);
+      var endpoint = addPath(ServerConfig.CMSAPIURL, path);
       var requestOptions = {
         agent: agent,
         method: method,
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${Config.APITOKEN}`
+          Authorization: `Bearer ${ServerConfig.APITOKEN}`
         },
         body: body,
         validateStatus: (status: number) => true
@@ -264,14 +313,14 @@ export const CmsApi = {
   
   cmsRequest(method: string, path: string, data: any) {
     try{
-      var endpoint = addPath(Config.CMSAPIURL, path);
+      var endpoint = addPath(ServerConfig.CMSAPIURL, path);
       var requestOptions = {
         agent: agent,
         method: method,
         headers: {
           'Content-Type': 'application/json',
           Accept: '*/*',
-          Authorization: `Bearer ${Config.APITOKEN}`
+          Authorization: `Bearer ${ServerConfig.APITOKEN}`
         },
         body: JSON.stringify(data),
         validateStatus: (status: number) => true
@@ -306,7 +355,7 @@ export async function fetchAPI(
       headers: {
         "Content-Type": "application/json",
         Accept: '*/*',
-        Authorization: `Bearer ${Config.APITOKEN}`
+        Authorization: `Bearer ${ServerConfig.APITOKEN}`
       },
       ...options,
     };
@@ -314,7 +363,7 @@ export async function fetchAPI(
     // Build request URL
     const queryString = qs.stringify(urlParamsObject);
     path = `${path}${queryString ? `?${queryString}` : ""}`;
-    var requestUrl = addPath(Config.CMSAPIURL, path);
+    var requestUrl = addPath(ServerConfig.CMSAPIURL, path);
     
     // Trigger API call
     const response = await fetch(requestUrl, mergedOptions);

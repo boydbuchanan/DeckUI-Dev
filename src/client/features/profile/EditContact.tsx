@@ -72,7 +72,6 @@ export const EditContact = ({
 }: EditAboutProps) => {
   const { show } = useToast();
   const [hasChanges, setHasChanges] = useState(false);
-  const [aboutMe, setAboutMe] = useState(user.aboutMe || "");
   const [contactLinks, setContactLinks] = useState<LinkType[]>(() =>
     transformUserToContactLinks(user)
   );
@@ -99,7 +98,6 @@ export const EditContact = ({
   const handleSave = useCallback(async () => {
     try {
       const updateData: Partial<CMS.UpdateUser> = {
-        aboutMe,
         ...transformContactLinksToUserUpdate(contactLinks)
       };
 
@@ -117,7 +115,7 @@ export const EditContact = ({
       });
       return Promise.reject(error);
     }
-  }, [aboutMe, contactLinks, setCurrentTab, show, onSave]);
+  }, [contactLinks, setCurrentTab, show, onSave]);
 
   return (
     <div className="flex flex-col h-full px-1">

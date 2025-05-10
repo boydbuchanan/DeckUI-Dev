@@ -17,6 +17,7 @@ const facebook = Assets.logos.facebook;
 const google = Assets.logos.google;
 
 type SignedInProps = {
+  disableButton: boolean;
   handleSubmit?: ({
     email,
     password,
@@ -28,7 +29,7 @@ type SignedInProps = {
   }) => Promise<void>;
 };
 
-export const SignedOut = ({ handleSubmit }: SignedInProps) => {
+export const SignedOut = ({ handleSubmit, disableButton }: SignedInProps) => {
   const { show } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [canSubmit, setCanSubmit] = useState(false);
@@ -60,10 +61,8 @@ export const SignedOut = ({ handleSubmit }: SignedInProps) => {
           register
         });
       } catch (error) {
-        show({
-          message: register ? "Failed to register" : "Failed to sign in",
-          variant: "error"
-        });
+        console.error("Error during form submission:", error);
+        
       } finally {
         setIsSubmitting(false);
       }
@@ -79,7 +78,7 @@ export const SignedOut = ({ handleSubmit }: SignedInProps) => {
   );
 
   return (
-    <CalloutLayout>
+    <>
       <Text variant="heading-md" className="text-center">
         {register ? "Register" : "Sign in"}
       </Text>
@@ -147,7 +146,7 @@ export const SignedOut = ({ handleSubmit }: SignedInProps) => {
           className="w-full py-4"
           color="black"
           variant="filled"
-          disabled={isSubmitting || !canSubmit}
+          disabled={isSubmitting || !canSubmit || disableButton}
         >
           {register ? "Register" : "Sign In"}
         </Button>
@@ -201,6 +200,6 @@ export const SignedOut = ({ handleSubmit }: SignedInProps) => {
         </button>
         . We do not share your personal details.
       </Text>
-    </CalloutLayout>
+    </>
   );
 };
